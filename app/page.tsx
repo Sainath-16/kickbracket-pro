@@ -163,9 +163,9 @@ export default function LandingPage() {
             <LogoIcon size={20} />
             <span className="text-sm text-slate-500 font-medium">© {new Date().getFullYear()} KickBracket Pro</span>
           </div>
-          <div className="flex gap-6 text-xs text-slate-600">
-            <span className="hover:text-slate-400 cursor-pointer transition-colors">Privacy</span>
-            <span className="hover:text-slate-400 cursor-pointer transition-colors">Terms</span>
+          <div className="flex gap-6 text-xs text-slate-500 font-medium">
+            <Link href="/privacy" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-emerald-400 transition-colors">Terms of Service</Link>
           </div>
         </div>
       </footer>
