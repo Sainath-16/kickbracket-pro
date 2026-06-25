@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogoIcon, TrophyIcon, ShareLinkIcon } from "../../components/icons";
+import { LogoIcon, TrophyIcon, ShareLinkIcon, EmptyStateIcon } from "../../components/icons";
 
 /* ── Types ── */
 type Team = { id: string; name: string; shortCode: string };
@@ -133,7 +133,7 @@ function ConfettiParticle({ index }: { index: number }) {
 }
 
 /* ── Winner Modal ── */
-function WinnerModal({ winnerName, onClose }: { winnerName: string; onClose: () => void }) {
+function WinnerModal({ winnerName, onClose, onViewResults }: { winnerName: string; onClose: () => void; onViewResults: () => void }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">{Array.from({ length: 80 }).map((_, i) => <ConfettiParticle key={i} index={i} />)}</div>
@@ -142,7 +142,7 @@ function WinnerModal({ winnerName, onClose }: { winnerName: string; onClose: () 
         <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="text-sm font-bold text-emerald-400 uppercase tracking-widest mb-2">Tournament Champion</motion.h2>
         <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="text-3xl font-extrabold text-white mb-6">{winnerName}</motion.h1>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>
-          <button onClick={onClose} className="px-6 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold transition-colors">View Results</button>
+          <button onClick={onViewResults} className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-semibold transition-colors shadow-lg shadow-emerald-500/20">View Results</button>
         </motion.div>
       </motion.div>
     </motion.div>
@@ -330,7 +330,7 @@ export default function TournamentPublicPage() {
 
   if (notFound) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <EmptyTournamentIcon /><h1 className="text-2xl font-bold text-white">Tournament Not Found</h1>
+      <EmptyStateIcon /><h1 className="text-2xl font-bold text-white">Tournament Not Found</h1>
       <p className="text-slate-400">This tournament may have been deleted.</p>
       <Link href="/" className="mt-4 px-6 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-500 transition-colors">Go Home</Link>
     </div>
@@ -341,7 +341,7 @@ export default function TournamentPublicPage() {
   return (
     <>
       {/* Modals */}
-      <AnimatePresence>{showWinner && <WinnerModal winnerName={winnerName} onClose={() => setShowWinner(false)} />}</AnimatePresence>
+      <AnimatePresence>{showWinner && <WinnerModal winnerName={winnerName} onClose={() => setShowWinner(false)} onViewResults={() => { setShowWinner(false); setTab(isLeagueFormat(tournament.format) ? "standings" : "bracket"); }} />}</AnimatePresence>
       <AnimatePresence>{scoringMatchData && <ScoreModal homeName={scoringMatchData.homeName} awayName={scoringMatchData.awayName} onSave={(h, a) => finishMatch(scoringMatchData.match.id, h, a)} onCancel={() => setScoringMatch(null)} />}</AnimatePresence>
       <AnimatePresence>{toast && <MatchWinToast message={toast} onDone={() => setToast(null)} />}</AnimatePresence>
 

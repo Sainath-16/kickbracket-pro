@@ -7,11 +7,11 @@ import {
   ShareIcon, LiveIcon, SimpleIcon, PlusIcon, ArrowRightIcon,
 } from "./components/icons";
 
-const fadeUp = {
+const fadeUp: any = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { delay: i * 0.1, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
   }),
 };
 
@@ -78,10 +78,9 @@ export default function LandingPage() {
 
         <motion.p
           variants={fadeUp} initial="hidden" animate="visible" custom={2}
-          className="text-lg text-slate-400 max-w-xl leading-relaxed mb-10"
+          className="text-lg text-slate-300 max-w-2xl leading-relaxed mb-10 font-normal"
         >
-          Create round-robin leagues and knockout brackets in seconds.
-          Track live scores, share real-time standings, and manage every match.
+          Enterprise-grade sports competition & fixture management engine. Generate automated round-robin leagues, Swiss stage tournaments, and double-elimination knockout brackets. Broadcast live telemetry, compute automated tie-breaking standings, and share real-time interactive snapshots seamlessly.
         </motion.p>
 
         <motion.div
