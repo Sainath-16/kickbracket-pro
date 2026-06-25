@@ -1,65 +1,110 @@
-import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      {/* ─── Navbar ─── */}
+      <nav className="w-full px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">
+            K
+          </div>
+          <span className="text-lg font-bold text-white">
+            KickBracket <span className="text-emerald-400">Pro</span>
+          </span>
+        </div>
+        <Link
+          href="/dashboard"
+          className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors"
+        >
+          Dashboard
+        </Link>
+      </nav>
+
+      {/* ─── Hero ─── */}
+      <section className="w-full flex flex-col items-center text-center px-6 pt-24 pb-20">
+        <span className="inline-block px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-emerald-400 text-sm font-medium mb-8">
+          ⚡ Professional Tournament Management
+        </span>
+
+        <h1 className="text-5xl sm:text-6xl font-extrabold text-white leading-tight mb-6">
+          Run Tournaments{" "}
+          <span className="text-emerald-400">Like a Pro</span>
+        </h1>
+
+        <p className="text-lg text-slate-400 max-w-xl leading-relaxed mb-10">
+          Create round-robin leagues and knockout brackets in seconds.
+          Track live scores, share real-time standings, and manage
+          every match.
+        </p>
+
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-20">
+          <Link
+            href="/dashboard/create"
+            className="px-8 py-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base transition-colors"
+          >
+            + Start a Tournament
+          </Link>
+          <a
+            href="#features"
+            className="px-8 py-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-base transition-colors"
+          >
+            View Features ↓
+          </a>
+        </div>
+
+        {/* Stats row */}
+        <div className="w-full max-w-2xl grid grid-cols-2 sm:grid-cols-4 gap-8 border-t border-slate-800 pt-10">
+          {[
+            ["2,500+", "Tournaments"],
+            ["45K+", "Matches"],
+            ["12K+", "Teams"],
+            ["99%", "Uptime"],
+          ].map(([value, label]) => (
+            <div key={label} className="flex flex-col items-center gap-1">
+              <span className="text-2xl font-bold text-emerald-400">{value}</span>
+              <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">{label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Features ─── */}
+      <section id="features" className="w-full bg-slate-800/60 px-6 py-24">
+        <div className="max-w-3xl mx-auto flex flex-col items-center text-center mb-14">
+          <h2 className="text-3xl font-bold text-white mb-3">
+            Everything you need
+          </h2>
+          <p className="text-slate-400 text-base">
+            From fixture generation to live score broadcasting.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="max-w-3xl mx-auto grid sm:grid-cols-2 gap-5">
+          {[
+            ["🗓️", "Automated Fixtures", "Generate Round Robin and Single Elimination brackets instantly with automatic BYE handling."],
+            ["📊", "Live Standings", "Real-time league tables with points, goal difference, and head-to-head records."],
+            ["📈", "Match Analytics", "Track possession, shots, corners, fouls, and cards per game."],
+            ["🔗", "Shareable Links", "Generate public share links so fans can follow live — no account needed."],
+          ].map(([emoji, title, desc]) => (
+            <div
+              key={title}
+              className="bg-slate-900 border border-slate-700/50 rounded-xl p-6 flex flex-col gap-3"
+            >
+              <span className="text-2xl">{emoji}</span>
+              <h3 className="text-lg font-bold text-white">{title}</h3>
+              <p className="text-sm text-slate-400 leading-relaxed">{desc}</p>
+            </div>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* ─── Footer ─── */}
+      <footer className="w-full px-6 py-6 border-t border-slate-800 text-center">
+        <p className="text-sm text-slate-500">
+          © {new Date().getFullYear()} KickBracket Pro. All rights reserved.
+        </p>
+      </footer>
+    </>
   );
 }

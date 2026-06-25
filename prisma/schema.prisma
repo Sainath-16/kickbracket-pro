@@ -1,0 +1,188 @@
+// KickBracket Pro — Prisma Schema
+// PostgreSQL provider via Prisma Postgres local dev server
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum TournamentFormat {
+  ROUND_ROBIN
+  SINGLE_ELIMINATION
+  DOUBLE_ELIMINATION
+}
+
+enum TournamentStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// Application Models
+// ─────────────────────────────────────────────
+
+model Tournament {
+  id        String           @id @default(cuid())
+  name      String
+  format    TournamentFormat
+  status    TournamentStatus @default(DRAFT)
+  shareId   String           @unique @default(cuid())
+  startDate DateTime?
+  endDate   DateTime?
+  logo      String?
+  description String?        @db.Text
+
+  // Relations
+  teams     Team[]
+  matches   Match[]
+  standings Standing[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shareId])
+}
+
+model Team {
+  id        String @id @default(cuid())
+  name      String
+  shortCode String @db.VarChar(5)
+  logo      String?
+
+  // Tournament relation
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  // Match relations (a team can be home or away)
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+  wonMatches  Match[] @relation("WinnerTeam")
+
+  // Standing
+  standing Standing?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tournamentId, name])
+  @@unique([tournamentId, shortCode])
+  @@index([tournamentId])
+}
+
+model Match {
+  id          String      @id @default(cuid())
+  round       Int
+  matchNumber Int
+  status      MatchStatus @default(SCHEDULED)
+
+  // Teams (nullable to support BYE rounds)
+  homeTeamId String?
+  homeTeam   Team?   @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: SetNull)
+
+  awayTeamId String?
+  awayTeam   Team?   @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: SetNull)
+
+  // Scores
+  homeScore Int?
+  awayScore Int?
+
+  // Winner (for knockout stages)
+  winnerId String?
+  winner   Team?   @relation("WinnerTeam", fields: [winnerId], references: [id], onDelete: SetNull)
+
+  // Bracket navigation (for elimination tournaments)
+  nextMatchId String?
+  nextMatch   Match?  @relation("BracketProgression", fields: [nextMatchId], references: [id])
+  prevMatches Match[] @relation("BracketProgression")
+
+  // Scheduling
+  scheduledAt DateTime?
+  playedAt    DateTime?
+
+  // Tournament relation
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  // 1:1 MatchStat
+  stats MatchStat?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tournamentId, round, matchNumber])
+  @@index([tournamentId])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+}
+
+model MatchStat {
+  id String @id @default(cuid())
+
+  // 1:1 with Match
+  matchId String @unique
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  // Home team stats
+  homePossession   Float? // percentage 0-100
+  homeShots        Int    @default(0)
+  homeShotsOnTarget Int   @default(0)
+  homeCorners      Int    @default(0)
+  homeFouls        Int    @default(0)
+  homeYellowCards  Int    @default(0)
+  homeRedCards     Int    @default(0)
+
+  // Away team stats
+  awayPossession   Float?
+  awayShots        Int    @default(0)
+  awayShotsOnTarget Int   @default(0)
+  awayCorners      Int    @default(0)
+  awayFouls        Int    @default(0)
+  awayYellowCards  Int    @default(0)
+  awayRedCards     Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Standing {
+  id String @id @default(cuid())
+
+  // Relations
+  teamId       String     @unique
+  team         Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  // Stats
+  played         Int @default(0)
+  won            Int @default(0)
+  drawn          Int @default(0)
+  lost           Int @default(0)
+  goalsFor       Int @default(0)
+  goalsAgainst   Int @default(0)
+  goalDifference Int @default(0)
+  points         Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, tournamentId])
+  @@index([tournamentId])
+}
