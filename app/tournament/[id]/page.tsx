@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { LogoIcon, TrophyIcon, ShareLinkIcon } from "../../components/icons";
 
 /* ── Types ── */
 type Team = { id: string; name: string; shortCode: string };
@@ -136,8 +137,8 @@ function WinnerModal({ winnerName, onClose }: { winnerName: string; onClose: () 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">{Array.from({ length: 80 }).map((_, i) => <ConfettiParticle key={i} index={i} />)}</div>
-      <motion.div initial={{ scale: 0.5, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.8, opacity: 0 }} transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }} onClick={(e) => e.stopPropagation()} className="relative bg-slate-800 border border-slate-700 rounded-2xl p-10 max-w-md w-full mx-4 text-center shadow-2xl">
-        <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} className="text-7xl mb-4 inline-block">🏆</motion.div>
+      <motion.div initial={{ scale: 0.5, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.8, opacity: 0 }} transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }} onClick={(e) => e.stopPropagation()} className="relative bg-[#0d1117] border border-white/10 rounded-2xl p-10 max-w-md w-full mx-4 text-center shadow-2xl">
+        <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} className="mb-4 inline-block"><TrophyIcon size={72} animate /></motion.div>
         <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="text-sm font-bold text-emerald-400 uppercase tracking-widest mb-2">Tournament Champion</motion.h2>
         <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="text-3xl font-extrabold text-white mb-6">{winnerName}</motion.h1>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>
@@ -156,9 +157,9 @@ function MatchWinToast({ message, onDone }: { message: string; onDone: () => voi
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -30, scale: 0.9 }}
-      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl shadow-emerald-500/30 font-bold text-sm flex items-center gap-2"
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-6 py-3 rounded-xl shadow-2xl shadow-emerald-500/30 font-bold text-sm flex items-center gap-3"
     >
-      <span className="text-lg">🎉</span>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M9 1v4M1 9h4M14 4l-2.5 2.5M4 4l2.5 2.5M14 14l-2.5-2.5M4 14l2.5-2.5M13 9h4M9 13v4" /></svg>
       {message}
     </motion.div>
   );
@@ -173,7 +174,7 @@ function ScoreModal({
   const valid = h !== "" && a !== "" && !isNaN(Number(h)) && !isNaN(Number(a)) && Number(h) >= 0 && Number(a) >= 0;
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onCancel}>
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl">
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="bg-[#0d1117] border border-white/10 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl">
         <h3 className="text-lg font-bold text-white text-center mb-6">Enter Final Score</h3>
         <div className="flex items-center gap-4 justify-center mb-8">
           <div className="flex flex-col items-center gap-2 flex-1">
@@ -284,9 +285,9 @@ export default function TournamentPublicPage() {
     // Toast
     const homeName = match.homeTeamId ? teamMap[match.homeTeamId]?.name : "TBD";
     const awayName = match.awayTeamId ? teamMap[match.awayTeamId]?.name : "TBD";
-    if (homeScore > awayScore) setToast(`${homeName} wins ${homeScore}–${awayScore}! 🔥 What a performance!`);
-    else if (awayScore > homeScore) setToast(`${awayName} wins ${awayScore}–${homeScore}! 🔥 Incredible result!`);
-    else setToast(`It's a draw ${homeScore}–${awayScore}! Both teams gave it their all! 💪`);
+    if (homeScore > awayScore) setToast(`${homeName} wins ${homeScore}–${awayScore}! What a performance!`);
+    else if (awayScore > homeScore) setToast(`${awayName} wins ${awayScore}–${homeScore}! Incredible result!`);
+    else setToast(`It's a draw ${homeScore}–${awayScore}! Both teams gave it their all!`);
 
     // Check tournament winner
     setTimeout(() => checkForWinner(updated), 500);
@@ -329,7 +330,7 @@ export default function TournamentPublicPage() {
 
   if (notFound) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <span className="text-6xl">😕</span><h1 className="text-2xl font-bold text-white">Tournament Not Found</h1>
+      <EmptyTournamentIcon /><h1 className="text-2xl font-bold text-white">Tournament Not Found</h1>
       <p className="text-slate-400">This tournament may have been deleted.</p>
       <Link href="/" className="mt-4 px-6 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-500 transition-colors">Go Home</Link>
     </div>
@@ -344,17 +345,18 @@ export default function TournamentPublicPage() {
       <AnimatePresence>{scoringMatchData && <ScoreModal homeName={scoringMatchData.homeName} awayName={scoringMatchData.awayName} onSave={(h, a) => finishMatch(scoringMatchData.match.id, h, a)} onCancel={() => setScoringMatch(null)} />}</AnimatePresence>
       <AnimatePresence>{toast && <MatchWinToast message={toast} onDone={() => setToast(null)} />}</AnimatePresence>
 
-      {/* Navbar */}
-      <nav className="w-full px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">K</div>
-          <span className="text-lg font-bold text-white">KickBracket <span className="text-emerald-400">Pro</span></span>
+      <nav className="relative z-10 w-full px-6 py-4 border-b border-white/5 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5">
+          <LogoIcon size={34} />
+          <span className="text-lg font-bold text-white tracking-tight">Kick<span className="text-emerald-400">Bracket</span></span>
         </Link>
         <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-white transition-colors">Dashboard</Link>
-          <button onClick={generateShareableLink} className="px-4 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 text-sm font-medium transition-colors">
-            {copied ? "✓ Link Copied!" : "📤 Share Snapshot"}
+          <Link href="/dashboard" className="px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-white transition-colors">Dashboard</Link>
+          <button onClick={generateShareableLink} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 text-blue-400 text-sm font-medium transition-colors">
+            {copied ? "\u2713 Copied!" : <><ShareLinkIcon /> Share</>}
           </button>
+        </div>
         </div>
       </nav>
 
@@ -366,16 +368,15 @@ export default function TournamentPublicPage() {
           <p className="text-slate-400 text-sm">{tournament.teams.length} teams · Round {activeRound} of {totalRounds}</p>
           {winnerName && !showWinner && (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full">
-              <span>🏆</span><span className="text-emerald-400 font-bold">Champion: {winnerName}</span>
+              <TrophyIcon size={20} /><span className="text-emerald-400 font-bold">Champion: {winnerName}</span>
             </motion.div>
           )}
         </motion.div>
 
-        {/* Tabs */}
-        <div className="flex justify-center gap-1 bg-slate-800/60 rounded-xl p-1 mb-10 max-w-md mx-auto">
+        <div className="flex justify-center gap-1 bg-white/[0.03] rounded-xl p-1 mb-10 max-w-md mx-auto border border-white/5">
           {(isLeagueFormat(tournament.format) ? (["standings", "fixtures"] as const) : (["bracket", "fixtures"] as const)).map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all capitalize ${tab === t ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "text-slate-400 hover:text-white"}`}>
-              {t === "standings" ? "📊 Standings" : t === "bracket" ? "🏆 Bracket" : "📅 Fixtures"}
+            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all capitalize ${tab === t ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" : "text-slate-500 hover:text-white"}`}>
+              {t === "standings" ? "Standings" : t === "bracket" ? "Bracket" : "Fixtures"}
             </button>
           ))}
         </div>
