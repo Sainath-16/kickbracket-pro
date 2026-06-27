@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogoIcon, TrophyIcon, ShareLinkIcon, EmptyStateIcon } from "../../components/icons";
+import { UserNav } from "../../components/UserNav";
 
 /* ── Types ── */
 type Team = { id: string; name: string; shortCode: string };
@@ -435,6 +436,7 @@ export default function TournamentPublicPage() {
           <button onClick={generateShareableLink} disabled={syncing} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 text-blue-400 text-sm font-medium transition-colors disabled:opacity-50">
             {copied ? "\u2713 Live Link Copied!" : syncing ? "Creating Live Link..." : <><ShareLinkIcon /> Share Live Link</>}
           </button>
+          <UserNav />
         </div>
         </div>
       </nav>

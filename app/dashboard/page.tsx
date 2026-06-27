@@ -7,11 +7,12 @@ import {
   LogoIcon, PlusIcon, EmptyStateIcon, TrophyIcon,
   ShareLinkIcon, TrashIcon, ArrowRightIcon,
 } from "../components/icons";
+import { UserNav, KBUser } from "../components/UserNav";
 
 type Team = { id: string; name: string; shortCode: string };
 type Tournament = {
   id: string; name: string; format: string; teams: Team[];
-  status: string; createdAt: string;
+  status: string; createdAt: string; userId?: string;
 };
 
 const formatLabels: Record<string, string> = {
@@ -30,12 +31,42 @@ const formatColors: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
+  const [user, setUser] = useState<KBUser | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
+  const loadTournaments = (currentUser: KBUser | null) => {
+    const stored: Tournament[] = JSON.parse(localStorage.getItem("tournaments") || "[]");
+    if (currentUser) {
+      let changed = false;
+      const updated = stored.map((t) => {
+        if (!t.userId) {
+          changed = true;
+          return { ...t, userId: currentUser.email };
+        }
+        return t;
+      });
+      if (changed) {
+        localStorage.setItem("tournaments", JSON.stringify(updated));
+        setAllTournaments(updated);
+        return;
+      }
+    }
+    setAllTournaments(stored);
+  };
+
   useEffect(() => {
-    setTournaments(JSON.parse(localStorage.getItem("tournaments") || "[]"));
+    const storedUser = JSON.parse(localStorage.getItem("kb_current_user") || "null");
+    setUser(storedUser);
+    loadTournaments(storedUser);
   }, []);
+
+  const handleUserChange = (newUser: KBUser | null) => {
+    setUser(newUser);
+    loadTournaments(newUser);
+  };
+
+  const tournaments = allTournaments.filter((t) => !user || !t.userId || t.userId === user.email);
 
   const copyShareLink = (id: string) => {
     const url = `${window.location.origin}/tournament/${id}`;
@@ -45,8 +76,8 @@ export default function DashboardPage() {
   };
 
   const deleteTournament = (id: string) => {
-    const updated = tournaments.filter((t) => t.id !== id);
-    setTournaments(updated);
+    const updated = allTournaments.filter((t) => t.id !== id);
+    setAllTournaments(updated);
     localStorage.setItem("tournaments", JSON.stringify(updated));
     localStorage.removeItem(`matches_${id}`);
   };
@@ -74,10 +105,25 @@ export default function DashboardPage() {
               Kick<span className="text-emerald-400">Bracket</span>
             </span>
           </Link>
+          <UserNav onUserChange={handleUserChange} />
         </div>
       </nav>
 
       <main className="relative z-10 w-full max-w-4xl mx-auto px-6 py-12">
+        {!user && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8 p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-purple-500/10 border border-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-2xl shrink-0">🔐</div>
+              <div>
+                <h3 className="text-base font-bold text-white">Sign in to claim your tournaments</h3>
+                <p className="text-xs text-slate-400">Log in with Gmail to securely bind brackets to your organizer account across devices.</p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <UserNav onUserChange={handleUserChange} />
+            </div>
+          </motion.div>
+        )}
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>

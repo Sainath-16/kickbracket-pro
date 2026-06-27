@@ -9,6 +9,7 @@ import {
   RoundRobinIcon, DoubleRRIcon, SingleElimIcon,
   DoubleElimIcon, SwissIcon, GroupKnockoutIcon, TrashIcon,
 } from "../../components/icons";
+import { UserNav } from "../../components/UserNav";
 
 type TeamEntry = { id: string; name: string };
 
@@ -65,6 +66,7 @@ export default function CreateTournamentPage() {
 
   const handleSubmit = () => {
     if (!canSubmit || !name.trim() || !format) return;
+    const user = JSON.parse(localStorage.getItem("kb_current_user") || "null");
     const tournament = {
       id: crypto.randomUUID(),
       name: name.trim(),
@@ -72,6 +74,7 @@ export default function CreateTournamentPage() {
       teams: teams.map((t) => ({ id: t.id, name: t.name, shortCode: t.name.slice(0, 3).toUpperCase() })),
       status: "DRAFT",
       createdAt: new Date().toISOString(),
+      userId: user ? user.email : null,
     };
     const existing = JSON.parse(localStorage.getItem("tournaments") || "[]");
     existing.push(tournament);
@@ -95,7 +98,10 @@ export default function CreateTournamentPage() {
               Kick<span className="text-emerald-400">Bracket</span>
             </span>
           </Link>
-          <Link href="/dashboard" className="text-sm text-slate-500 hover:text-white transition-colors">Dashboard</Link>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-sm text-slate-500 hover:text-white transition-colors">Dashboard</Link>
+            <UserNav />
+          </div>
         </div>
       </nav>
 

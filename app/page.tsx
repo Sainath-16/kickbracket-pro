@@ -6,6 +6,7 @@ import {
   LogoIcon, FixturesIcon, StandingsIcon, AnalyticsIcon,
   ShareIcon, LiveIcon, SimpleIcon, PlusIcon, ArrowRightIcon,
 } from "./components/icons";
+import { UserNav } from "./components/UserNav";
 
 const fadeUp: any = {
   hidden: { opacity: 0, y: 20 },
@@ -49,9 +50,12 @@ export default function LandingPage() {
               Kick<span className="text-emerald-400">Bracket</span>
             </span>
           </div>
-          <Link href="/dashboard" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/20">
-            Dashboard <ArrowRightIcon />
-          </Link>
+          <div className="flex items-center gap-4">
+            <UserNav />
+            <Link href="/dashboard" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/20">
+              Dashboard <ArrowRightIcon />
+            </Link>
+          </div>
         </div>
       </nav>
 
