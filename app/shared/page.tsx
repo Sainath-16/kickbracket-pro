@@ -80,7 +80,7 @@ function SharedPageContent() {
     if (liveId) {
       setIsLiveSync(true);
       const fetchLive = () => {
-        fetch(`https://jsonblob.com/api/jsonBlob/${liveId}`)
+        fetch(`/api/sync?id=${liveId}`, { cache: "no-store" })
           .then((r) => r.json())
           .then((decoded) => {
             if (decoded && decoded.t && decoded.m) {
@@ -92,7 +92,7 @@ function SharedPageContent() {
           .catch(() => {});
       };
       fetchLive();
-      const interval = setInterval(fetchLive, 4000);
+      const interval = setInterval(fetchLive, 3000);
       return () => clearInterval(interval);
     } else {
       try {

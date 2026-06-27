@@ -268,13 +268,13 @@ export default function TournamentPublicPage() {
     setMatches(updated);
     localStorage.setItem(`matches_${id}`, JSON.stringify(updated));
 
-    // Live background cloud sync
+    // Live background cloud sync via internal API
     const blobId = localStorage.getItem(`sync_blob_${id}`);
     if (blobId && tournament) {
-      fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
+      fetch("/api/sync", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ t: tournament, m: updated, updatedAt: Date.now() }),
+        body: JSON.stringify({ id: blobId, t: tournament, m: updated, updatedAt: Date.now() }),
       }).catch(() => {});
     }
   };
@@ -364,21 +364,21 @@ export default function TournamentPublicPage() {
       let blobId = localStorage.getItem(`sync_blob_${tournament.id}`);
       const payload = { t: tournament, m: matches, updatedAt: Date.now() };
       if (!blobId) {
-        const res = await fetch("https://jsonblob.com/api/jsonBlob", {
+        const res = await fetch("/api/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const loc = res.headers.get("location");
-        if (loc) {
-          blobId = loc.split("/").pop() || "";
-          if (blobId) localStorage.setItem(`sync_blob_${tournament.id}`, blobId);
+        const data = await res.json();
+        if (data && data.id) {
+          blobId = data.id;
+          localStorage.setItem(`sync_blob_${tournament.id}`, blobId!);
         }
       } else {
-        await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
+        await fetch("/api/sync", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ id: blobId, ...payload }),
         });
       }
 
