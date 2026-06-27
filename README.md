@@ -33,6 +33,12 @@ Share live links with participants and spectators across the globe instantly—n
 - **Auto-Updating Spectator View:** Viewers receive real-time score updates every 3 seconds without refreshing the page.
 - **Serverless Cloud Proxy:** Powered by custom backend proxy routes (`/api/sync`) ensuring lightning-fast cross-origin updates.
 
+### 🔐 Dedicated Authentication & Workspace Isolation
+Secure your tournaments with our frictionless account management system:
+- **Dedicated Authentication Portal (`/login`):** A standalone sign-in and account creation portal with live password criteria verification and Google/Gmail login options.
+- **Organizer Workspace Isolation:** Tournaments are tagged to the creator's account, filtering your dashboard so you only manage your own brackets.
+- **1-Click Test Accounts:** Includes instant demo profiles (`organizer.pro@gmail.com`) for effortless exploration without typing credentials.
+
 ### 🎨 Broadcast-Grade UI/UX
 Designed to deliver a stunning first impression and premium user engagement:
 - **Sleek Dark Mode & Glassmorphism:** Harmonious HSL color palettes and translucent backdrop blurs.
