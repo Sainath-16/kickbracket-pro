@@ -170,7 +170,7 @@ export default function LoginPage() {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Pick a quick test account:</p>
                   <div className="flex flex-col gap-2">
                     {[
-                      { email: "sainath@gmail.com", name: "Sainath Organizer" },
+                      { email: "organizer.pro@gmail.com", name: "Pro Organizer" },
                       { email: "alex.manager@gmail.com", name: "Alex Manager" },
                       { email: "pro.referee@gmail.com", name: "Pro Referee" },
                     ].map((g) => (
@@ -231,7 +231,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
-                placeholder="e.g. sainath@gmail.com"
+                placeholder="e.g. organizer.pro@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
