@@ -213,6 +213,7 @@ export default function TournamentPublicPage() {
   const [winnerName, setWinnerName] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [scoringMatch, setScoringMatch] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     const stored: Tournament[] = JSON.parse(localStorage.getItem("tournaments") || "[]");
@@ -266,6 +267,16 @@ export default function TournamentPublicPage() {
   const persist = (updated: Match[]) => {
     setMatches(updated);
     localStorage.setItem(`matches_${id}`, JSON.stringify(updated));
+
+    // Live background cloud sync
+    const blobId = localStorage.getItem(`sync_blob_${id}`);
+    if (blobId && tournament) {
+      fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ t: tournament, m: updated, updatedAt: Date.now() }),
+      }).catch(() => {});
+    }
   };
 
   const startMatch = (matchId: string) => {
@@ -346,12 +357,47 @@ export default function TournamentPublicPage() {
     if (winner) { setWinnerName(winner); setTimeout(() => setShowWinner(true), 800); }
   }, [tournament, teamMap]);
 
-  const generateShareableLink = () => {
+  const generateShareableLink = async () => {
     if (!tournament) return;
-    const encoded = btoa(encodeURIComponent(JSON.stringify({ t: tournament, m: matches })));
-    navigator.clipboard.writeText(`${window.location.origin}/shared?d=${encoded}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    setSyncing(true);
+    try {
+      let blobId = localStorage.getItem(`sync_blob_${tournament.id}`);
+      const payload = { t: tournament, m: matches, updatedAt: Date.now() };
+      if (!blobId) {
+        const res = await fetch("https://jsonblob.com/api/jsonBlob", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const loc = res.headers.get("location");
+        if (loc) {
+          blobId = loc.split("/").pop() || "";
+          if (blobId) localStorage.setItem(`sync_blob_${tournament.id}`, blobId);
+        }
+      } else {
+        await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (blobId) {
+        navigator.clipboard.writeText(`${window.location.origin}/shared?live=${blobId}`);
+      } else {
+        const encoded = btoa(encodeURIComponent(JSON.stringify({ t: tournament, m: matches })));
+        navigator.clipboard.writeText(`${window.location.origin}/shared?d=${encoded}`);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      const encoded = btoa(encodeURIComponent(JSON.stringify({ t: tournament, m: matches })));
+      navigator.clipboard.writeText(`${window.location.origin}/shared?d=${encoded}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const scoringMatchData = useMemo(() => {
@@ -386,8 +432,8 @@ export default function TournamentPublicPage() {
         </Link>
         <div className="flex items-center gap-2">
           <Link href="/dashboard" className="px-3 py-2 rounded-lg text-sm text-slate-500 hover:text-white transition-colors">Dashboard</Link>
-          <button onClick={generateShareableLink} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 text-blue-400 text-sm font-medium transition-colors">
-            {copied ? "\u2713 Copied!" : <><ShareLinkIcon /> Share</>}
+          <button onClick={generateShareableLink} disabled={syncing} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/15 border border-blue-500/20 text-blue-400 text-sm font-medium transition-colors disabled:opacity-50">
+            {copied ? "\u2713 Live Link Copied!" : syncing ? "Creating Live Link..." : <><ShareLinkIcon /> Share Live Link</>}
           </button>
         </div>
         </div>

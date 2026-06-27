@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { LogoIcon, TrophyIcon } from "../components/icons";
 
 /* ── Types ── */
 type Team = { id: string; name: string; shortCode: string };
@@ -72,17 +73,38 @@ function SharedPageContent() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [tab, setTab] = useState<"standings" | "fixtures" | "bracket">("standings");
   const [error, setError] = useState(false);
+  const [isLiveSync, setIsLiveSync] = useState(false);
 
   useEffect(() => {
-    try {
-      const data = searchParams.get("d");
-      if (!data) { setError(true); return; }
-      const decoded = JSON.parse(decodeURIComponent(atob(data)));
-      setTournament(decoded.t);
-      setMatches(decoded.m);
-      if (!isLeagueFormat(decoded.t.format)) setTab("bracket");
-    } catch {
-      setError(true);
+    const liveId = searchParams.get("live");
+    if (liveId) {
+      setIsLiveSync(true);
+      const fetchLive = () => {
+        fetch(`https://jsonblob.com/api/jsonBlob/${liveId}`)
+          .then((r) => r.json())
+          .then((decoded) => {
+            if (decoded && decoded.t && decoded.m) {
+              setTournament(decoded.t);
+              setMatches(decoded.m);
+              if (!isLeagueFormat(decoded.t.format)) setTab((prev) => prev || "bracket");
+            }
+          })
+          .catch(() => {});
+      };
+      fetchLive();
+      const interval = setInterval(fetchLive, 4000);
+      return () => clearInterval(interval);
+    } else {
+      try {
+        const data = searchParams.get("d");
+        if (!data) { setError(true); return; }
+        const decoded = JSON.parse(decodeURIComponent(atob(data)));
+        setTournament(decoded.t);
+        setMatches(decoded.m);
+        if (!isLeagueFormat(decoded.t.format)) setTab("bracket");
+      } catch {
+        setError(true);
+      }
     }
   }, [searchParams]);
 
@@ -155,16 +177,23 @@ function SharedPageContent() {
   return (
     <>
       {/* Navbar */}
-      <nav className="w-full px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">K</div>
-          <span className="text-lg font-bold text-white">
-            KickBracket <span className="text-emerald-400">Pro</span>
+      <nav className="relative z-10 w-full px-6 py-4 border-b border-white/5 backdrop-blur-md flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5">
+          <LogoIcon size={34} />
+          <span className="text-lg font-bold text-white tracking-tight">
+            Kick<span className="text-emerald-400">Bracket</span>
           </span>
         </Link>
-        <span className="px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
-          📎 Shared View (Read-Only)
-        </span>
+        {isLiveSync ? (
+          <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider animate-pulse shadow-sm shadow-red-500/10">
+            <span className="w-2 h-2 rounded-full bg-red-500" />
+            Live Auto-Updating
+          </span>
+        ) : (
+          <span className="px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+            📎 Shared View (Static)
+          </span>
+        )}
       </nav>
 
       <main className="w-full max-w-4xl mx-auto px-6 py-10">
@@ -177,7 +206,7 @@ function SharedPageContent() {
           <p className="text-slate-400 text-sm">{tournament.teams.length} teams</p>
           {winnerName && (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 rounded-full">
-              <span>🏆</span>
+              <TrophyIcon size={20} />
               <span className="text-emerald-400 font-bold">Champion: {winnerName}</span>
             </motion.div>
           )}
