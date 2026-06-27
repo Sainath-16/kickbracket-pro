@@ -167,15 +167,16 @@ function MatchWinToast({ message, onDone }: { message: string; onDone: () => voi
 
 /* ── Score Entry Modal ── */
 function ScoreModal({
-  homeName, awayName, onSave, onCancel,
-}: { homeName: string; awayName: string; onSave: (h: number, a: number) => void; onCancel: () => void }) {
-  const [h, setH] = useState("");
-  const [a, setA] = useState("");
+  homeName, awayName, initialHome, initialAway, onSave, onCancel,
+}: { homeName: string; awayName: string; initialHome?: number | null; initialAway?: number | null; onSave: (h: number, a: number) => void; onCancel: () => void }) {
+  const [h, setH] = useState(initialHome !== null && initialHome !== undefined ? String(initialHome) : "");
+  const [a, setA] = useState(initialAway !== null && initialAway !== undefined ? String(initialAway) : "");
   const valid = h !== "" && a !== "" && !isNaN(Number(h)) && !isNaN(Number(a)) && Number(h) >= 0 && Number(a) >= 0;
+  const isEdit = initialHome !== null && initialHome !== undefined;
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onCancel}>
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="bg-[#0d1117] border border-white/10 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl">
-        <h3 className="text-lg font-bold text-white text-center mb-6">Enter Final Score</h3>
+        <h3 className="text-lg font-bold text-white text-center mb-6">{isEdit ? "Edit Match Score" : "Enter Final Score"}</h3>
         <div className="flex items-center gap-4 justify-center mb-8">
           <div className="flex flex-col items-center gap-2 flex-1">
             <span className="text-sm font-semibold text-slate-300 truncate max-w-[120px]">{homeName}</span>
@@ -191,7 +192,7 @@ function ScoreModal({
         </div>
         <div className="flex gap-3">
           <button onClick={onCancel} className="flex-1 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold transition-colors">Cancel</button>
-          <button onClick={() => valid && onSave(Number(h), Number(a))} disabled={!valid} className="flex-1 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold transition-colors">Save Score</button>
+          <button onClick={() => valid && onSave(Number(h), Number(a))} disabled={!valid} className="flex-1 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold transition-colors">{isEdit ? "Update Score" : "Save Score"}</button>
         </div>
       </motion.div>
     </motion.div>
@@ -278,7 +279,39 @@ export default function TournamentPublicPage() {
   const finishMatch = (matchId: string, homeScore: number, awayScore: number) => {
     const match = matches.find((m) => m.id === matchId);
     if (!match) return;
-    const updated = matches.map((m) => m.id === matchId ? { ...m, homeScore, awayScore, status: "COMPLETED" as MatchStatus } : m);
+    let updated = matches.map((m) => m.id === matchId ? { ...m, homeScore, awayScore, status: "COMPLETED" as MatchStatus } : m);
+
+    if (tournament && !isLeagueFormat(tournament.format)) {
+      const r = match.round;
+      const roundMatches = updated.filter((m) => m.round === r);
+      const idx = roundMatches.findIndex((m) => m.id === matchId);
+      if (idx !== -1) {
+        const nextRoundMatches = updated.filter((m) => m.round === r + 1);
+        const nextMatch = nextRoundMatches[Math.floor(idx / 2)];
+        if (nextMatch) {
+          const winnerId = homeScore > awayScore ? match.homeTeamId : awayScore > homeScore ? match.awayTeamId : null;
+          const isHomePos = idx % 2 === 0;
+          updated = updated.map((m) => {
+            if (m.id === nextMatch.id) {
+              const teamChanged = (isHomePos && m.homeTeamId !== winnerId) || (!isHomePos && m.awayTeamId !== winnerId);
+              const newHome = isHomePos ? winnerId : m.homeTeamId;
+              const newAway = !isHomePos ? winnerId : m.awayTeamId;
+              const newStatus = newHome && newAway ? (teamChanged && m.status === "COMPLETED" ? "SCHEDULED" : m.status) : "SCHEDULED";
+              return {
+                ...m,
+                homeTeamId: newHome,
+                awayTeamId: newAway,
+                homeScore: teamChanged ? null : m.homeScore,
+                awayScore: teamChanged ? null : m.awayScore,
+                status: newStatus as MatchStatus,
+              };
+            }
+            return m;
+          });
+        }
+      }
+    }
+
     persist(updated);
     setScoringMatch(null);
 
@@ -342,7 +375,7 @@ export default function TournamentPublicPage() {
     <>
       {/* Modals */}
       <AnimatePresence>{showWinner && <WinnerModal winnerName={winnerName} onClose={() => setShowWinner(false)} onViewResults={() => { setShowWinner(false); setTab(isLeagueFormat(tournament.format) ? "standings" : "bracket"); }} />}</AnimatePresence>
-      <AnimatePresence>{scoringMatchData && <ScoreModal homeName={scoringMatchData.homeName} awayName={scoringMatchData.awayName} onSave={(h, a) => finishMatch(scoringMatchData.match.id, h, a)} onCancel={() => setScoringMatch(null)} />}</AnimatePresence>
+      <AnimatePresence>{scoringMatchData && <ScoreModal homeName={scoringMatchData.homeName} awayName={scoringMatchData.awayName} initialHome={scoringMatchData.match.homeScore} initialAway={scoringMatchData.match.awayScore} onSave={(h, a) => finishMatch(scoringMatchData.match.id, h, a)} onCancel={() => setScoringMatch(null)} />}</AnimatePresence>
       <AnimatePresence>{toast && <MatchWinToast message={toast} onDone={() => setToast(null)} />}</AnimatePresence>
 
       <nav className="relative z-10 w-full px-6 py-4 border-b border-white/5 backdrop-blur-md">
@@ -434,7 +467,9 @@ export default function TournamentPublicPage() {
                             const awayWon = completed && match.awayScore! > match.homeScore!;
                             return (
                               <motion.div key={match.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: round * 0.1 + mi * 0.05 }}
-                                className={`w-52 rounded-xl overflow-hidden shadow-lg border transition-all ${live ? "border-red-500/50 shadow-red-500/10" : round === totalRounds && completed ? "border-emerald-500/50 shadow-emerald-500/10" : locked ? "border-slate-800 opacity-50" : "border-slate-700/50"}`}>
+                                onClick={() => !locked && home && away && setScoringMatch(match.id)}
+                                title={!locked && home && away ? "Click to enter/edit score" : undefined}
+                                className={`w-52 rounded-xl overflow-hidden shadow-lg border transition-all ${!locked && home && away ? "cursor-pointer hover:border-slate-400 hover:shadow-xl" : ""} ${live ? "border-red-500/50 shadow-red-500/10" : round === totalRounds && completed ? "border-emerald-500/50 shadow-emerald-500/10" : locked ? "border-slate-800 opacity-50" : "border-slate-700/50"}`}>
                                 {live && <div className="bg-red-500/10 px-3 py-1 flex items-center justify-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /><span className="text-red-400 text-[10px] font-bold uppercase tracking-widest">Live</span></div>}
                                 <div className={`flex items-center justify-between px-3 py-2.5 ${homeWon ? "bg-emerald-500/15" : "bg-slate-800"}`}>
                                   <div className="flex items-center gap-2 min-w-0 flex-1"><span className={`w-1.5 h-1.5 rounded-full shrink-0 ${homeWon ? "bg-emerald-400" : "bg-transparent"}`} /><span className={`text-sm truncate ${homeWon ? "text-emerald-400 font-bold" : home ? "text-slate-200 font-medium" : "text-slate-500 italic"}`}>{home?.name ?? "TBD"}</span></div>
@@ -530,9 +565,9 @@ export default function TournamentPublicPage() {
                               {/* Center: Score or status */}
                               <div className="shrink-0 min-w-[100px] text-center">
                                 {isCompleted ? (
-                                  <span className="px-4 py-1.5 rounded-lg bg-slate-700/80 text-white font-bold text-sm inline-block">
+                                  <button onClick={() => setScoringMatch(match.id)} title="Click to edit score" className="px-4 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-white font-bold text-sm inline-block transition-colors cursor-pointer shadow">
                                     {match.homeScore} – {match.awayScore}
-                                  </span>
+                                  </button>
                                 ) : isLive ? (
                                   <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-red-400 font-bold text-sm">
                                     LIVE
@@ -560,6 +595,9 @@ export default function TournamentPublicPage() {
                                     <button onClick={() => startMatch(match.id)} className="px-4 py-1.5 rounded-lg bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-600/30 transition-colors">
                                       ▶ Start Match
                                     </button>
+                                    <button onClick={() => setScoringMatch(match.id)} className="px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs font-bold hover:bg-blue-600/30 transition-colors">
+                                      📝 Enter Score
+                                    </button>
                                     <button onClick={() => cancelMatch(match.id)} className="px-3 py-1.5 rounded-lg bg-slate-700/50 text-slate-400 text-xs font-medium hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 border border-slate-700 transition-colors">
                                       Cancel
                                     </button>
@@ -571,7 +609,12 @@ export default function TournamentPublicPage() {
                                   </button>
                                 )}
                                 {isCompleted && (
-                                  <span className="text-emerald-400/60 text-xs font-medium">✓ Completed</span>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-emerald-400/80 text-xs font-medium">✓ Completed</span>
+                                    <button onClick={() => setScoringMatch(match.id)} className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm">
+                                      ✏️ Edit Score
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             )}
